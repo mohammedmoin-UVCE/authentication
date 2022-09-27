@@ -46,7 +46,7 @@ export class AuthService{
               errorMessage='The Password is Incorrect';
               break;
         }
-        return throwError(errorMessage);
+        return throwError(errorMessage)
   }
 }
 
