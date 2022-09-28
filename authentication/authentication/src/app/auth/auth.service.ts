@@ -1,10 +1,12 @@
 import { HttpClient, HttpErrorResponse } from "@angular/common/http";
 import { Injectable } from "@angular/core";
-import { catchError, throwError } from "rxjs";
+import { catchError, Subject, tap, throwError } from "rxjs";
 import { environment} from '../../environments/environment'
+import { User } from "./user.model";
 
 @Injectable({providedIn:'root'})
 export class AuthService{
+  user=new Subject<User>;
   constructor(private http:HttpClient){}
   signUp(email:string,password:string){
     return this.http.post<AuthResponseData>('https://identitytoolkit.googleapis.com/v1/accounts:signUp?key='
@@ -14,7 +16,10 @@ export class AuthService{
         password:password,
         returnSecureToken:true
     }
-    ).pipe(catchError(this.handleError));
+    ).pipe(catchError(this.handleError),tap(resData=>{
+      const expirationDate=new Date(new Date().getTime()+ +resData.expiresIn*1000);
+
+    }));
 
   }
 
@@ -46,9 +51,10 @@ export class AuthService{
               errorMessage='The Password is Incorrect';
               break;
         }
-        return throwError(errorMessage)
+        return throwError(errorMessage);
   }
 }
+
 
 
 

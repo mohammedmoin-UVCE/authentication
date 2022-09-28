@@ -19,6 +19,7 @@ import { RecipeEditComponent } from './recipes/recipe-edit/recipe-edit.component
 import { RecipeService } from './recipes/recipe.service';
 import { AuthComponent } from './auth/auth.component';
 import { loadingSpinnerComponent } from './shared/Loading/loading.component';
+import { AlertComponent } from './shared/alert/alert.component';
 
 @NgModule({
   declarations: [
@@ -34,7 +35,8 @@ import { loadingSpinnerComponent } from './shared/Loading/loading.component';
     RecipeStartComponent,
     RecipeEditComponent,
     AuthComponent,
-    loadingSpinnerComponent
+    loadingSpinnerComponent,
+    AlertComponent
   ],
   imports: [
     BrowserModule,
