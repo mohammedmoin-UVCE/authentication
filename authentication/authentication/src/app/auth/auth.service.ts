@@ -1,13 +1,15 @@
 import { HttpClient, HttpErrorResponse } from "@angular/common/http";
 import { Injectable } from "@angular/core";
+import { Router } from "@angular/router";
 import { catchError, Subject, tap, throwError } from "rxjs";
 import { environment} from '../../environments/environment'
 import { User } from "./user.model";
 
 @Injectable({providedIn:'root'})
 export class AuthService{
-  user=new Subject<User>;
-  constructor(private http:HttpClient){}
+  user=new Subject<User>();
+  constructor(private http:HttpClient,private router:Router){}
+
   signUp(email:string,password:string){
     return this.http.post<AuthResponseData>('https://identitytoolkit.googleapis.com/v1/accounts:signUp?key='
     +environment.firebaseKApiey,
@@ -17,8 +19,7 @@ export class AuthService{
         returnSecureToken:true
     }
     ).pipe(catchError(this.handleError),tap(resData=>{
-      const expirationDate=new Date(new Date().getTime()+ +resData.expiresIn*1000)
-
+        this.handleAutthentication(resData.email,resData.localId,resData.idToken,+resData.expiresIn);
     }));
 
   }
@@ -32,8 +33,40 @@ export class AuthService{
       password:password,
       returnSecureToken:true
     }
-    ).pipe(catchError(this.handleError));
+    ).pipe(catchError(this.handleError),tap(resData=>{
+      this.handleAutthentication(resData.email,resData.localId,resData.idToken,+resData.expiresIn);
+  }));
+
   }
+
+  autoLogin(){
+    const userData:{
+      email:string;
+      id:string;
+      _token:string;
+     _tokenExpirationDate:Date;
+    }=JSON.parse(localStorage.getItem('userDat'));
+    if(!userData){
+      return;
+    }
+    const loader=new User(userData.email,userData.id,userData._token,new Date(userData._tokenExpirationDate));
+    if(loader.token){
+      this.user.next(loader);
+    }
+  }
+
+  logout(){
+    this.user.next(null);
+    this.router.navigate(['/auth']);
+  }
+
+  private handleAutthentication(email:string,userId:string,token:string,expiresIn:number){
+    const expirationDate=new Date(new Date().getTime()+ +expiresIn*1000);
+    const user=new User(email,userId,token,expirationDate);
+    this.user.next(user);
+    localStorage.setItem('userData',JSON.stringify(user));
+  }
+
   private handleError(errorRes:HttpErrorResponse) {
 
     let errorMessage='An Unknown error Occurred!'
@@ -67,3 +100,7 @@ export interface AuthResponseData{
   localId:string;
   registered?:boolean;
 }
+function autoLogin() {
+  throw new Error("Function not implemented.");
+}
+
